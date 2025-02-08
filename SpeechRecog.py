@@ -1,22 +1,29 @@
 from flask import Flask, request, jsonify
 import speech_recognition as sr
-import os
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)  # Allow Unity to access API
 recognizer = sr.Recognizer()
 
 @app.route('/recognize', methods=['POST'])
 def recognize_speech():
-    try:
-        with sr.Microphone() as mic:
-            recognizer.adjust_for_ambient_noise(mic, duration=0.2)
-            audio = recognizer.listen(mic)
+    if 'file' not in request.files:
+        return jsonify({"error": "No audio file uploaded"}), 400
 
-            text = recognizer.recognize_google(audio)
-            text = text.lower()
-            return jsonify({"text": text})
+    file = request.files['file']
+    
+    try:
+        with sr.AudioFile(file) as source:
+            audio = recognizer.record(source)
+
+        text = recognizer.recognize_google(audio)
+        return jsonify({"text": text})
     except sr.UnknownValueError:
-        return jsonify({"error": "Could not understand audio"})
+        return jsonify({"error": "Could not understand audio"}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
+    import os
     app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 1000)))
