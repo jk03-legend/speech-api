@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 import speech_recognition as sr
+import os
 
 app = Flask(__name__)
 recognizer = sr.Recognizer()
@@ -18,4 +19,4 @@ def recognize_speech():
         return jsonify({"error": "Could not understand audio"})
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
