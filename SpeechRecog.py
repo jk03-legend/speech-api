@@ -5,6 +5,16 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
+import whisper
+model = whisper.load_model("base")
+
+@app.route('/stream', methods=['POST'])
+def stream_speech():
+    file = request.files['file']
+    audio = whisper.load_audio(file)
+    text = model.transcribe(audio)["text"]
+    return jsonify({"text": text})
+    
 @app.route('/recognize', methods=['POST'])
 def recognize_speech():
     if 'file' not in request.files:
