@@ -3,3 +3,4 @@ speechrecognition
 gunicorn
 flask-cors
 pydub
+ffmpeg
