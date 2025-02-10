@@ -1,47 +1,30 @@
-import os
 import speech_recognition as sr
 from flask import Flask, request, jsonify
-from google.cloud import speech
 from flask_cors import CORS
-import whisper
-
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "your-service-account.json"
 
 app = Flask(__name__)
 CORS(app)
 
-client = speech.SpeechClient()
-model = whisper.load_model("base")
-
-@app.route('/stream', methods=['POST'])
-def stream_speech():
-    file = request.files['file']
-    audio = whisper.load_audio(file)
-    text = model.transcribe(audio)["text"]
-    return jsonify({"text": text})
-
-@app.route('/stream', methods=['POST'])
-def stream_speech():
+@app.route('/recognize', methods=['POST'])
+def recognize_speech():
     if 'file' not in request.files:
         return jsonify({"error": "No audio file uploaded"}), 400
 
     file = request.files['file']
-    audio_data = file.read()
+    recognizer = sr.Recognizer()
 
-    audio = speech.RecognitionAudio(content=audio_data)
-    config = speech.RecognitionConfig(
-        encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
-        sample_rate_hertz=44100,
-        language_code="en-US"
-    )
+    try:
+        with sr.AudioFile(file) as source:
+            recognizer.adjust_for_ambient_noise(source, duration=1)  # Reduce background noise
+            audio = recognizer.record(source)
 
-    response = client.recognize(config=config, audio=audio)
-    
-    if response.results:
-        text = response.results[0].alternatives[0].transcript
+        text = recognizer.recognize_google(audio, language="en-US", show_all=False)  # Change language if needed
         return jsonify({"text": text})
-    else:
-        return jsonify({"error": "No speech detected"})
+    
+    except sr.UnknownValueError:
+        return jsonify({"error": "Could not understand audio"}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    app.run(debug=True)
