@@ -15,8 +15,11 @@ def recognize_speech():
 
     try:
         with sr.AudioFile(file) as source:
-            recognizer.adjust_for_ambient_noise(source, duration=1)  # Reduce background noise
-            audio = recognizer.record(source)
+        recognizer = sr.Recognizer()
+        recognizer.energy_threshold = 300  # Adjust to ignore background noise
+        recognizer.dynamic_energy_threshold = True  # Auto adjust noise threshold
+        audio = recognizer.record(source, duration=5)  # Limit recording to 5 sec
+
 
         text = recognizer.recognize_google(audio, language="en-US", show_all=False)  # Change language if needed
         return jsonify({"text": text})
