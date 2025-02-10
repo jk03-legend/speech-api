@@ -1,10 +1,19 @@
-import speech_recognition as sr
 from flask import Flask, request, jsonify
-from flask_cors import CORS
+import speech_recognition as sr
 from pydub import AudioSegment, silence
 
 app = Flask(__name__)
-CORS(app)
+
+def remove_silence(audio_file):
+    audio = AudioSegment.from_file(audio_file)
+    trimmed_audio = silence.split_on_silence(audio, silence_thresh=-40)
+    
+    if len(trimmed_audio) == 0:
+        return None  # No speech detected
+
+    final_audio = trimmed_audio[0]  # Use the first segment with speech
+    final_audio.export("trimmed.wav", format="wav")
+    return "trimmed.wav"
 
 @app.route('/recognize', methods=['POST'])
 def recognize_speech():
@@ -12,25 +21,23 @@ def recognize_speech():
         return jsonify({"error": "No audio file uploaded"}), 400
 
     file = request.files['file']
+    trimmed_file = remove_silence(file)
+
+    if not trimmed_file:
+        return jsonify({"error": "No speech detected"}), 400
+
     recognizer = sr.Recognizer()
+    with sr.AudioFile(trimmed_file) as source:
+        recognizer.adjust_for_ambient_noise(source, duration=1)  # Noise reduction
+        audio = recognizer.record(source)
 
     try:
-        with sr.AudioFile(file) as source:
-            recognizer = sr.Recognizer()
-            recognizer.energy_threshold = 300  # Adjust to ignore background noise
-            recognizer.dynamic_energy_threshold = True  # Auto adjust noise threshold
-            audio = recognizer.record(source, duration=5)  # Limit recording to 5 sec
-            audio = AudioSegment.from_file(file)
-            trimmed_audio = silence.split_on_silence(audio, silence_thresh=-40)
-            trimmed_audio.export("trimmed.wav", format="wav")
-    
-        text = recognizer.recognize_google(trimmed_audio, language="en-US", show_all=False)  # Change language if needed
+        text = recognizer.recognize_google(audio)
         return jsonify({"text": text})
-    
     except sr.UnknownValueError:
         return jsonify({"error": "Could not understand audio"}), 400
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, host="0.0.0.0", port=5000)
