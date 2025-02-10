@@ -24,8 +24,8 @@ def recognize_speech():
             trimmed_audio = silence.split_on_silence(audio, silence_thresh=-40)
             trimmed_audio.export("trimmed.wav", format="wav")
     
-            text = recognizer.recognize_google(trimmed_audio, language="en-US", show_all=False)  # Change language if needed
-            return jsonify({"text": text})
+        text = recognizer.recognize_google(trimmed_audio, language="en-US", show_all=False)  # Change language if needed
+        return jsonify({"text": text})
     
     except sr.UnknownValueError:
         return jsonify({"error": "Could not understand audio"}), 400
