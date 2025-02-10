@@ -16,16 +16,16 @@ def recognize_speech():
 
     try:
         with sr.AudioFile(file) as source:
-        recognizer = sr.Recognizer()
-        recognizer.energy_threshold = 300  # Adjust to ignore background noise
-        recognizer.dynamic_energy_threshold = True  # Auto adjust noise threshold
-        audio = recognizer.record(source, duration=5)  # Limit recording to 5 sec
-        audio = AudioSegment.from_file(file)
-        trimmed_audio = silence.split_on_silence(audio, silence_thresh=-40)
-        trimmed_audio.export("trimmed.wav", format="wav")
-
-        text = recognizer.recognize_google(trimmed_audio, language="en-US", show_all=False)  # Change language if needed
-        return jsonify({"text": text})
+            recognizer = sr.Recognizer()
+            recognizer.energy_threshold = 300  # Adjust to ignore background noise
+            recognizer.dynamic_energy_threshold = True  # Auto adjust noise threshold
+            audio = recognizer.record(source, duration=5)  # Limit recording to 5 sec
+            audio = AudioSegment.from_file(file)
+            trimmed_audio = silence.split_on_silence(audio, silence_thresh=-40)
+            trimmed_audio.export("trimmed.wav", format="wav")
+    
+            text = recognizer.recognize_google(trimmed_audio, language="en-US", show_all=False)  # Change language if needed
+            return jsonify({"text": text})
     
     except sr.UnknownValueError:
         return jsonify({"error": "Could not understand audio"}), 400
