@@ -3,3 +3,4 @@ speechrecognition
 gunicorn
 flask-cors
 openai-whisper
+google-cloud-speech
