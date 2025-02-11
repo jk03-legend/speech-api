@@ -1,7 +1,6 @@
 from flask import Flask, request, jsonify, send_file
 import speech_recognition as sr
 from flask_cors import CORS
-import openai
 import os
 from gtts import gTTS
 
