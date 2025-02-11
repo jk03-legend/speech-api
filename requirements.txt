@@ -2,5 +2,3 @@ Flask
 speechrecognition
 gunicorn
 flask-cors
-openai
-gtts
