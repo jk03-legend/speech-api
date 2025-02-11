@@ -1,7 +1,6 @@
 from flask import Flask, request, jsonify
 import speech_recognition as sr
 from flask_cors import CORS
-from gtts import gTTS
 
 app = Flask(__name__)
 CORS(app)
@@ -26,29 +25,12 @@ def recognize_speech():
 
     try:
         text = recognizer.recognize_google(audio)
-        audio_tts = generate_tts(text)
-        cache[audio_hash] = text    
-        return jsonify({"text": text, "audio_url": audio_tts})
+        cache[audio_hash] = text
+        return jsonify({"text": text})
     except sr.UnknownValueError:
         return jsonify({"error": "Could not understand audio"}), 400
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-def generate_tts(text):
-    tts = gTTS(text=text, lang='en')
-    audio_filename = "response.mp3"
-    audio_path = os.path.join("static", audio_filename)
-    tts.save(audio_path)
-    return f"/static/{audio_filename}"
-
-
-@app.route('/static/<filename>')
-def serve_audio(filename):
-    return send_file(os.path.join("static", filename), mimetype="audio/mpeg")
-
-
 if __name__ == "__main__":
-    if not os.path.exists("static"):
-        os.makedirs("static")
     app.run(debug=True)
-
