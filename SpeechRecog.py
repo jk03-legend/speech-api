@@ -16,7 +16,7 @@ def recognize_speech():
         return jsonify({"error": "No audio file uploaded"}), 400
 
     file = request.files['file']
-    file_path = "temp.wav"
+    file_path = "audio.wav"
     file.save(file_path)
 
     # Read and send the audio file to OpenAI Whisper API
