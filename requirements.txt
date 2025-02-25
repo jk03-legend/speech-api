@@ -2,5 +2,5 @@ Flask
 speechrecognition
 gunicorn
 flask-cors
-vosk
-soundfile
+openai
+os
