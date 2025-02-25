@@ -26,14 +26,14 @@ def recognize_speech():
                 model="whisper-1", 
                 file=audio_file
             )
-            transcript = response.get("text", "")
+            text = response.get("text", "")
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     finally:
         os.remove(file_path)  # Clean up temp file
 
-    return jsonify({"text": transcript.strip() if transcript else "No speech detected"})
+    return jsonify({"text": text.strip() if text else "No speech detected"})
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
