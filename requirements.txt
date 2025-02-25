@@ -1,6 +1,6 @@
-Flask
-gunicorn
+flask
 flask-cors
-openai
 torch
-whisper
+openai-whisper
+gunicorn
+ffmpeg-python
