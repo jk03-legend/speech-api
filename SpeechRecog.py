@@ -1,14 +1,11 @@
 from flask import Flask, request, jsonify
+import speech_recognition as sr
 from flask_cors import CORS
-import openai
-import os
 
 app = Flask(__name__)
 CORS(app)
 
-# OpenAI API Key
-OPENAI_API_KEY = "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"
-openai.api_key = OPENAI_API_KEY
+cache = {}
 
 @app.route('/recognize', methods=['POST'])
 def recognize_speech():
@@ -16,25 +13,24 @@ def recognize_speech():
         return jsonify({"error": "No audio file uploaded"}), 400
 
     file = request.files['file']
-    file_path = "audio.wav"
-    file.save(file_path)
+    audio_hash = hash(file.read())
 
-    # Read and send the audio file to OpenAI Whisper API
+    if audio_hash in cache:
+        return jsonify({"text": cache[audio_hash]})
+
+    file.seek(0)
+    recognizer = sr.Recognizer()
+    with sr.AudioFile(file) as source:
+        audio = recognizer.record(source)
+
     try:
-        with open(file_path, "rb") as audio_file:
-            response = openai.Audio.transcribe(
-                model="whisper-1", 
-                file=audio_file
-            )
-            text = response.get("text", "")
-
+        text = recognizer.recognize_google(audio)
+        cache[audio_hash] = text
+        return jsonify({"text": text})
+    except sr.UnknownValueError:
+        return jsonify({"error": "Could not understand audio"}), 400
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    finally:
-        os.remove(file_path)  # Clean up temp file
-
-    return jsonify({"text": text.strip() if text else "No speech detected"})
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run(debug=True)
