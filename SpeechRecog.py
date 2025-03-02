@@ -9,7 +9,9 @@ from model import NeuralNet
 from nltk_utils import bag_of_words, tokenize
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})
+app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 # Load NLP chatbot data
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
