@@ -2,4 +2,3 @@ Flask
 speechrecognition
 gunicorn
 flask-cors
-hashlib
