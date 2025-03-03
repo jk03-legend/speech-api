@@ -1,9 +1,4 @@
 Flask
 Flask-Cors
-torch
 SpeechRecognition
-nltk
-spacy
-numpy
-requests
 gunicorn
